@@ -12,7 +12,7 @@ class Mountain {
     this.size = { w, h };
     this.body = Bodies.rectangle(x,y,80,48,{
       collisionFilter: {
-        category: config.category.hide,
+        category: config.category.bg,
       },
       isStatic: true,
       render: {

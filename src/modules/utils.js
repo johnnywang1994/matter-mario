@@ -7,6 +7,11 @@ export async function loadImage(url) {
   });
 }
 
+export function checkLabel(labelA, labelB, type1, type2) {
+  return (labelA === type1 && labelB === type2) ||
+    (labelA === type2 && labelB === type1);
+}
+
 export function createSpriteAnimation(options) {
   const { ctx, image, target, source, body, render, frames, initFrame, offset, rate, reverse, reverse_image } = options;
   const { size: targetSize } = target;
@@ -21,7 +26,11 @@ export function createSpriteAnimation(options) {
 
   return {
     loop: animation,
-    next() {
+    reset() {
+      frameCount = 0;
+      frameId = initFrame || frameMin;
+    },
+    play() {
       frameCount++;
       if (frameCount % (1 / rate) === 0) {
         if (frames.length === 1) return;

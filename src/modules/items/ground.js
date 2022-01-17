@@ -23,6 +23,10 @@ class Ground {
     // inorder to let Collision work nice
     const groundBody = this.body = Body.create({
       parts: this.stack.bodies,
+      collisionFilter: {
+        category: config.category.default,
+        mask: config.category.default,
+      },
       isStatic: true,
     });
     Composite.add(engine.world, groundBody);
