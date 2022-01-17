@@ -20,6 +20,7 @@ class Player {
     this.body = Bodies.rectangle(50,config.height - 100,20,20,{
       label: 'Mario',
       collisionFilter: {
+        group: config.group.player,
         category: config.category.default,
         mask: config.category.default,
       },
@@ -156,7 +157,7 @@ class Player {
     document.removeEventListener('keyup', this.listeners.keyup);
   }
 
-  setListener(ground) {
+  setListener() {
     document.addEventListener('keydown', this.listeners.keydown);
     document.addEventListener('keyup', this.listeners.keyup);
 
@@ -171,25 +172,29 @@ class Player {
       }
 
       event.pairs.forEach(({ bodyA, bodyB }) => {
+        const groupA = bodyA.collisionFilter.group;
+        const groupB = bodyB.collisionFilter.group;
         const labelA = bodyA.label;
         const labelB = bodyB.label;
-        const hitMushroom = checkLabel(labelA, labelB, 'Mario', 'Mushroom');
+        const hitEnemy = checkLabel(groupA, groupB, config.group.player, config.group.enemy);
+        const hitBlock = checkLabel(groupA, groupB, config.group.player, config.group.block);
         const hitGrowMushroom = checkLabel(labelA, labelB, 'Mario', 'GrowMushroom');
-        if (hitMushroom && this.status >= 0) {
-          let mario, mushroom;
-          if (labelA === 'Mario') {
+        // touch enemy
+        if (hitEnemy && this.status >= 0) {
+          let mario, enemy;
+          if (groupA === config.group.player) {
             mario = bodyA;
-            mushroom = bodyB;
+            enemy = bodyB;
           } else {
             mario = bodyB;
-            mushroom = bodyA;
+            enemy = bodyA;
           }
           // mario ontop of mushroom
-          const targetMushroom = worldItems.get(mushroom);
-          if (targetMushroom.status === 0) {
-            if (mario.position.y < mushroom.position.y - 10) {
-              targetMushroom.die();
-              Body.setStatic(mushroom, true);
+          const targetEnemy = worldItems.get(enemy);
+          if (targetEnemy.status === 0) {
+            if (mario.position.y < enemy.position.y - 10) {
+              targetEnemy.die();
+              Body.setStatic(enemy, true);
               this.jump(-4);
             } else {
               this.die();
@@ -197,12 +202,32 @@ class Player {
           }
         }
 
+        // touch block
+        if (hitBlock) {
+          let mario, block;
+          if (groupA === config.group.player) {
+            mario = bodyA;
+            block = bodyB;
+          } else {
+            mario = bodyB;
+            block = bodyA;
+          }
+          const targetBlock = worldItems.get(block);
+          if (targetBlock.status === 0) {
+            targetBlock.hit();
+          }
+        }
+
+        // touch grow mushroom
         if (hitGrowMushroom && this.status === 0 && !this.growing) {
           let f;
           let count = 0;
           const growMushroom = worldItems.get(
             labelA === 'GrowMushroom' ? bodyA : bodyB
           );
+
+          // skip when popping
+          if (growMushroom.popping) return;
 
           growMushroom.die();
           Body.setStatic(this.body, true);
@@ -219,6 +244,7 @@ class Player {
 
           setTimeout(() => {
             cancelAnimationFrame(f);
+            this.growing = false;
             this.status = 1;
             Body.scale(this.body, 1, 1.7);
             Body.setInertia(this.body, Infinity);

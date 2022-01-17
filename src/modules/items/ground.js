@@ -15,7 +15,7 @@ class Ground {
     this.stack = Composites.stack(0,config.height-size.height*rows,cols,rows,0,0,function(x, y) {
       return Bodies.rectangle(x,y,size.width,size.height,{
         render: {
-          fillStyle: 'brown',
+          fillStyle: 'transparent',
         },
       });
     });

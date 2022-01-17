@@ -1,3 +1,5 @@
+import { Body } from 'matter-js';
+
 const Container = '#my-mario';
 
 export let canvas;
@@ -16,6 +18,11 @@ export default {
     default: 0x0001,
     bg: 0x0002,
     isolate: 0x0004,
+  },
+  group: {
+    player: Body.nextGroup(),
+    block: Body.nextGroup(),
+    enemy: Body.nextGroup(),
   },
   init() {
     canvas = document.querySelector(Container);

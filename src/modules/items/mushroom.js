@@ -17,6 +17,7 @@ class Mushroom {
     this.body = Bodies.circle(x, y, 10, {
       label: 'Mushroom',
       collisionFilter: {
+        group: config.group.enemy,
         category: config.category.default,
         mask: config.category.default,
       },

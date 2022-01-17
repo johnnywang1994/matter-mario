@@ -1,4 +1,4 @@
-import { Bodies, Composite, Events } from 'matter-js';
+import { Bodies, Body, Composite, Events } from 'matter-js';
 import config, { ctx, worldItems } from '../../config';
 import engine from '../engine';
 import render from '../render';
@@ -16,6 +16,8 @@ class Item {
     this.itemType = type;
     this.status = 0; // -1: dead, 0: alive
     this.drawCallback = null;
+    this.popping = true;
+
     this.body = Bodies.circle(x, y, 8, {
       label: labelMap[type],
       collisionFilter: {
@@ -29,6 +31,41 @@ class Item {
     Composite.add(engine.world, this.body);
   }
 
+  drawFrame() {
+    const { body, itemType, popping } = this;
+    const { min } = render.bounds;
+    const { position: pos } = body;
+    ctx.drawImage(
+      image,
+      itemType*16,0,16,16,
+      pos.x-8-min.x,pos.y-8-min.y,16,16,
+    );
+    if (!popping) {
+      Body.setVelocity(this.body, {
+        x: -0.6,
+        y: this.body.velocity.y,
+      });
+    }
+  }
+
+  popOut() {
+    Body.setStatic(this.body, true);
+    let count = 0;
+    let f;
+    const s = () => {
+      count++;
+      Body.translate(this.body, { x: 0, y: -1 });
+      if (count >= 32) {
+        this.popping = false;
+        cancelAnimationFrame(f);
+        Body.setStatic(this.body, false);
+      } else {
+        f = requestAnimationFrame(s);
+      }
+    };
+    f = requestAnimationFrame(s);
+  }
+
   die() {
     this.status = -1;
     worldItems.delete(this.body);
@@ -37,18 +74,9 @@ class Item {
   }
 
   async render() {
-    const { body, itemType } = this;
-    const { min } = render.bounds;
     image = image || await loadImage('/cdn/Misc/Items.png');
 
-    this.drawCallback = () => {
-      const { position: pos } = body;
-      ctx.drawImage(
-        image,
-        itemType*16,0,16,16,
-        pos.x-8-min.x,pos.y-8-min.y,16,16,
-      );
-    };
+    this.drawCallback = () => this.drawFrame();
 
     Events.on(render, 'afterRender', this.drawCallback);
   }
