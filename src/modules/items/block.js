@@ -1,11 +1,8 @@
 import { Bodies, Composite, Events, Constraint, Body } from 'matter-js';
-import config, { ctx, worldItems } from '../../config';
+import config, { ctx, loader, worldItems } from '../../config';
 import engine from '../engine';
 import render from '../render';
-import { loadImage } from '../utils';
 import Item from './item';
-
-let image;
 
 const labelMap = {
   1: 'SolidBlock',
@@ -57,7 +54,8 @@ class Block {
   async render() {
     const { body } = this;
     const { min } = render.bounds;
-    image = image || await loadImage('/cdn/Tilesets/OverWorld.png');
+    const { assets } = loader;
+    const image = assets.overworld;
 
     Events.on(render, 'afterRender', () => {
       const { blockType } = this;

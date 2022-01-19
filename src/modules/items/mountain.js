@@ -1,11 +1,8 @@
-import { Events, Body, Bodies, Composite } from 'matter-js';
+import { Events, Bodies, Composite } from 'matter-js';
 import engine from '../engine';
 import render from '../render';
-import { loadImage } from '../utils';
-import config, { ctx } from '../../config';
+import config, { ctx, loader } from '../../config';
 
-// use more then once
-let image;
 
 class Mountain {
   constructor(x, y, w = 80, h = 48) {
@@ -26,9 +23,7 @@ class Mountain {
     const { size } = this;
     const { position: pos } = this.body;
     const { min } = render.bounds;
-    if (!image) {
-      image = await loadImage('/cdn/Tilesets/OverWorld.png');;
-    }
+    const image = loader.assets.overworld;
 
     Events.on(render, 'afterRender', (event) => {
       ctx.drawImage(

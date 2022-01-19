@@ -1,10 +1,7 @@
 import { Bodies, Body, Composite, Events } from 'matter-js';
-import config, { ctx, worldItems } from '../../config';
+import config, { ctx, loader, worldItems } from '../../config';
 import engine from '../engine';
 import render from '../render';
-import { loadImage } from '../utils';
-
-let image;
 
 const labelMap = {
   0: 'GrowMushroom',
@@ -35,6 +32,8 @@ class Item {
     const { body, itemType, popping } = this;
     const { min } = render.bounds;
     const { position: pos } = body;
+    const image = loader.assets.items;
+
     ctx.drawImage(
       image,
       itemType*16,0,16,16,
@@ -74,8 +73,6 @@ class Item {
   }
 
   async render() {
-    image = image || await loadImage('/cdn/Misc/Items.png');
-
     this.drawCallback = () => this.drawFrame();
 
     Events.on(render, 'afterRender', this.drawCallback);

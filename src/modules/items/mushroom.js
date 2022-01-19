@@ -1,8 +1,8 @@
 import { Events, Body, Bodies, Composite } from 'matter-js';
 import engine from '../engine';
 import render from '../render';
-import { loadImage, createSpriteAnimation } from '../utils';
-import config, { ctx, worldItems } from '../../config';
+import { createSpriteAnimation } from '../utils';
+import config, { ctx, loader, worldItems } from '../../config';
 
 class Mushroom {
   constructor(x, y) {
@@ -55,7 +55,7 @@ class Mushroom {
 
   async render() {
     const self = this;
-    self.image = await loadImage('/cdn/Characters/Enemies.png');
+    self.image = loader.assets.enemy;
 
     self.animation.move = createSpriteAnimation({
       ctx,

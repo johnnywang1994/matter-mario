@@ -6,6 +6,8 @@ export let canvas;
 
 export let ctx;
 
+export let loader;
+
 export const worldItems = new WeakMap();
 
 export default {
@@ -24,8 +26,9 @@ export default {
     block: Body.nextGroup(),
     enemy: Body.nextGroup(),
   },
-  init() {
+  init(_loader) {
     canvas = document.querySelector(Container);
     ctx = canvas.getContext('2d');
+    loader = _loader;
   },
 };

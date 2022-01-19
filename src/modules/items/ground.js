@@ -1,8 +1,7 @@
 import { Events, Body, Bodies, Composite, Composites } from 'matter-js';
 import engine from '../engine';
 import render from '../render';
-import config, { ctx } from '../../config';
-import { loadImage } from '../utils';
+import config, { ctx, loader } from '../../config';
 
 class Ground {
   constructor() {
@@ -33,7 +32,7 @@ class Ground {
   }
 
   async render() {
-    const image = await loadImage('/cdn/Tilesets/OverWorld.png');
+    const image = loader.assets.overworld;
     const { bodies } = this.stack;
 
     Events.on(render, 'afterRender', () => {

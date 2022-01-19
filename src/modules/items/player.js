@@ -1,8 +1,8 @@
-import { Events, Body, Bodies, Composite, Bounds, Collision } from 'matter-js';
+import { Events, Body, Bodies, Composite, Bounds } from 'matter-js';
 import engine from '../engine';
 import render from '../render';
-import config, { ctx, worldItems } from '../../config';
-import { loadImage, checkLabel, createSpriteAnimation } from '../utils';
+import config, { ctx, loader, worldItems } from '../../config';
+import { checkLabel, createSpriteAnimation } from '../utils';
 
 class Player {
   constructor() {
@@ -26,7 +26,7 @@ class Player {
       },
       inertia: Infinity,
       friction: 0.0001,
-      // render: { fillStyle: 'transparent' },
+      render: { fillStyle: 'transparent' },
     });
 
     this.listeners = {
@@ -256,10 +256,11 @@ class Player {
     });
   }
 
-  async render() {
+  render() {
     const self = this;
-    self.image = await loadImage('/cdn/Characters/Mario.png');
-    self.reverse_image = await loadImage('/cdn/Characters/Mario_reverse.png');
+    const { assets } = loader;
+    self.image = assets.mario;
+    self.reverse_image = assets.mario_reverse;
 
     self.animation.move = createSpriteAnimation({
       ctx,
