@@ -11,7 +11,8 @@ class Mushroom {
       x: 0,
       y: 0,
     };
-    this.status = 0; // -1: dead, 0: alive
+    this.status = 'alive'; // dead, beat, alive
+    this.direction = 'back'; // front, back
     this.drawCallback = null;
 
     this.body = Bodies.circle(x, y, 10, {
@@ -22,6 +23,7 @@ class Mushroom {
         mask: config.category.default,
       },
       friction: 0.001,
+      density: 1,
       render: { fillStyle: 'transparent' },
     });
 
@@ -31,8 +33,18 @@ class Mushroom {
     Composite.add(engine.world, this.body);
   }
 
+  starBeat() {
+    this.status = 'beat';
+    this.body.collisionFilter.mask = config.category.isolate;
+    Body.setVelocity(this.body, {
+      x: this.body.velocity.x,
+      y: -4,
+    });
+  }
+
   die() {
-    this.status = -1;
+    this.status = 'dead';
+    this.body.isSensor = true;
     setTimeout(() => {
       worldItems.delete(this.body);
       Events.off(render, 'afterRender', this.drawCallback);
@@ -40,17 +52,29 @@ class Mushroom {
     }, 500);
   }
 
-  drawFrame() {
-    if (this.status === -1) {
-      this.animation.dead.loop();
-    } else {
-      this.animation.move.loop();
-      this.animation.move.play();
-      Body.setVelocity(this.body, {
-        x: -0.3,
-        y: this.body.velocity.y,
-      });
+  changeDirection() {
+    this.direction = this.direction === 'front' ? 'back' : 'front';
+  }
+
+  dead() {
+    this.animation.dead.loop();
+  }
+
+  beat() {
+    this.animation.move.loop();
+  }
+
+  alive() {
+    if (Math.abs(this.body.velocity.x) < 0.06) {
+      this.changeDirection();
     }
+    this.animation.move.play();
+    this.animation.move.loop();
+    const xMovement = this.direction === 'front' ? 0.6 : -0.6;
+    Body.setVelocity(this.body, {
+      x: xMovement,
+      y: this.body.velocity.y,
+    });
   }
 
   async render() {
@@ -66,7 +90,7 @@ class Mushroom {
       offset: { x: -18, y: -23 },
       body: self.body,
       frames: [0, 1],
-      rate: 0.05,
+      rate: 0.1,
     });
 
     self.animation.dead = createSpriteAnimation({
@@ -81,7 +105,11 @@ class Mushroom {
       rate: 1,
     });
 
-    this.drawCallback = () => self.drawFrame();
+    this.drawCallback = () => {
+      if (typeof this[this.status] === 'function') {
+        this[this.status]();
+      }
+    };
 
     Events.on(render, 'afterRender', this.drawCallback);
   }

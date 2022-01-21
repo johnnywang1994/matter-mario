@@ -8,13 +8,15 @@ export let ctx;
 
 export let loader;
 
+export const idItems = {};
+
 export const worldItems = new WeakMap();
 
 export default {
   container: Container,
-  width: 500,
-  mapWidth: 500*2,
-  height: 300,
+  width: 260,
+  mapWidth: 260*12.3,
+  height: 210,
   background: '#8090e0',
   category: {
     default: 0x0001,
@@ -23,8 +25,9 @@ export default {
   },
   group: {
     player: Body.nextGroup(),
-    block: Body.nextGroup(),
+    block: Body.nextGroup(true),
     enemy: Body.nextGroup(),
+    fireball: Body.nextGroup(),
   },
   init(_loader) {
     canvas = document.querySelector(Container);

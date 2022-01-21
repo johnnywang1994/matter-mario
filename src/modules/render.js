@@ -11,8 +11,8 @@ const render = Render.create({
     background: config.background,
     // https://stackoverflow.com/questions/34913835/how-can-i-move-camera-in-matter-js
     hasBounds: true, // for camera
-    showVelocity: true, // speed indicator
-    showAngleIndicator: true, // angle indicator
+    showVelocity: false, // speed indicator
+    showAngleIndicator: false, // angle indicator
     showCollisions: true, // collision indicator
     showConvexHulls: true,
     wireframes: false,

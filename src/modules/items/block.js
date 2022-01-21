@@ -3,6 +3,7 @@ import config, { ctx, loader, worldItems } from '../../config';
 import engine from '../engine';
 import render from '../render';
 import Item from './item';
+import Coin from './coin';
 
 const labelMap = {
   1: 'SolidBlock',
@@ -16,9 +17,12 @@ class Block {
   constructor(x, y, type = 3, itemType) {
     this.blockType = type;
     this.itemType = itemType;
-    this.status = 0; // -1: used, 0: alive
-    this.body = Bodies.rectangle(x, y, 16, 16, {
-      label: labelMap[type],
+    this.status = 'alive'; // -1: used, 0: alive
+
+    // for mario stand on
+    this.roof = Bodies.rectangle(x, y-6, 16, 5, {
+      label: labelMap[2],
+      isStatic: true,
       collisionFilter: {
         group: config.group.block,
         category: config.category.default,
@@ -26,28 +30,44 @@ class Block {
       },
       render: { fillStyle: 'transparent' },
     });
+
+    this.body = Bodies.rectangle(x, y, 16, 16, {
+      label: labelMap[type],
+      isStatic: type === 1,
+      collisionFilter: {
+        group: config.group.block,
+        category: config.category.default,
+        mask: config.category.default,
+      },
+      render: { fillStyle: 'transparent' },
+    });
+
     this.sling = Constraint.create({
       pointA: { x, y },
       bodyB: this.body,
-      stiffness: 0.06,
+      stiffness: 0.1,
     });
 
     worldItems.set(this.body, this);
-    Composite.add(engine.world, [this.body, this.sling]);
+    Composite.add(engine.world, [this.roof, this.body, this.sling]);
   }
 
   hit() {
     const { blockType, itemType, body } = this;
     const { position: pos } = body;
     // mark used
-    this.status = -1;
+    this.status = 'used';
     // create item
-    if (blockType === 4 && typeof itemType !== 'undefined') {
-      const item = new Item(pos.x, pos.y, itemType);
+    if (typeof itemType !== 'undefined') {
+      let item = itemType === 'coin'
+        ? new Coin(pos.x, pos.y - 16)
+        : new Item(pos.x, pos.y, itemType);
+      this.blockType = 2;
       item.render();
       item.popOut();
-      this.blockType = 2;
-      Body.setStatic(body, true);
+      setTimeout(() => {
+        Body.setStatic(body, true);
+      }, 500);
     }
   }
 

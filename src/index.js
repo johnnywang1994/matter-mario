@@ -13,6 +13,7 @@ loader.add('items', '/cdn/Misc/Items.png');
 loader.add('mario', '/cdn/Characters/Mario.png');
 loader.add('mario_reverse', '/cdn/Characters/Mario_reverse.png');
 loader.add('enemy', '/cdn/Characters/Enemies.png');
+loader.add('castle', '/cdn/Tilesets/Castle.png');
 
 window.addEventListener('load', async function () {
   await loader.load();

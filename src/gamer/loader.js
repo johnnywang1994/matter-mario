@@ -31,8 +31,8 @@ export class Loader {
   }
 
   async load() {
-    const res = await Promise.all(this.pending);
+    await Promise.all(this.pending);
     this.pending = [];
-    console.log('load assets successful', res);
+    console.log('load assets successful', this.assets);
   }
 }
