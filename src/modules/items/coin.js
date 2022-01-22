@@ -31,6 +31,7 @@ class Coin {
 
   popOut() {
     idItems.scene.addCoin();
+    window.transport.audio.coin.play();
     this.popping = true;
     Body.setStatic(this.body, false);
     Body.setVelocity(this.body, { x: 0, y: -5 });

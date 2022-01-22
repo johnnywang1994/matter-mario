@@ -12,6 +12,17 @@ export function checkLabel(labelA, labelB, type1, type2) {
     (labelA === type2 && labelB === type1);
 }
 
+export function triggerAt(posX, obj, once = true) {
+  let fn = () => obj.render();
+
+  return function checker(currentX) {
+    if (fn && currentX >= posX) {
+      fn();
+      if (once) fn = null;
+    }
+  }
+}
+
 export function createSpriteAnimation(options) {
   const { ctx, image, target, source, body, render, frames, initFrame, offset, rate, reverse, reverse_image, follow } = {
     rate: 1,

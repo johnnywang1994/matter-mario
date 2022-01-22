@@ -37,6 +37,7 @@ class Item {
 
   popOut() {
     this.popping = true;
+    window.transport.audio.powerup_spawn.play();
     Body.setStatic(this.body, true);
     let count = 0;
     let f;

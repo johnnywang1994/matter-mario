@@ -54,7 +54,7 @@ function createNormalBlocks() {
 
   new Block(2034, 67, 3).render();
   new Block(2050, 125, 3).render();
-  new Block(2066, 125, 3).render();
+  new Block(2066, 125, 3, 'coin', 8).render();
   new Block(2082, 67, 3).render();
 
   new Block(2620, 125, 3).render();
@@ -83,7 +83,7 @@ function createItemBlocks() {
   new Block(1266, 125, 4, 2).render();
 
   new Block(1506, 67, 4, 'coin').render();
-  new Block(1506, 125, 3, 'coin').render();
+  new Block(1506, 125, 3, 'coin', 8).render();
 
   new Block(1634, 125, 3, 3).render();
 
@@ -102,17 +102,16 @@ function createItemBlocks() {
 
 function createPipes() {
   new Pipe(442, config.height-48, 1).render();
-  new Pipe(600, config.height-56, 2).render();
+  new Pipe(600, config.height-56, 2, true).render();
   new Pipe(710, config.height-64, 3).render();
   new Pipe(890, config.height-64, 3).render();
 
-  new Pipe(2556, config.height-48, 1).render();
+  new Pipe(2556, config.height-56, 2, true).render();
 
   new Pipe(2780, config.height-48, 1).render();
 }
 
 function createEnemies() {
-  new Mushroom(400, config.height-48).render();
   new Mushroom(620, config.height-48).render();
   new Mushroom(740, config.height-48).render();
   new Mushroom(780, config.height-48).render();

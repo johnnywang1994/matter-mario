@@ -6,7 +6,7 @@ async function loadImage(id, url) {
   });
 }
 
-export class Loader {
+export default class Loader {
   constructor() {
     this.pending = [];
     this.assets = {};

@@ -9,6 +9,9 @@ class Player {
   constructor() {
     this.image = '';
     this.reverse_image = '';
+    // use this vel for moving speed & frame front or back
+    // since real velocity will become 0 when stop
+    // which makes it hard to judge facing side
     this.vel = {
       x: 0,
       y: 0,
@@ -57,6 +60,10 @@ class Player {
     this.ending = true;
     this.removeListener();
     Body.setStatic(this.body, true);
+    window.transport.audio.bgm.stop();
+    window.transport.audio.level_complete.play();
+    idItems.scene.stopCountDown();
+
     let frameTimer = null;
     const moveDown = () => {
       if (this.body.position.y >= config.height - 48) {
@@ -73,7 +80,6 @@ class Player {
           setTimeout(() => {
             Events.off(render, 'afterRender', this.drawCallback);
             Composite.remove(engine.world, this.body);
-            idItems.scene.stopCountDown();
           }, 1200);
         }, 500);
         return;
@@ -99,7 +105,21 @@ class Player {
     this.vel = {x:0,y:0};
     this.removeListener();
     this.body.collisionFilter.mask = config.category.isolate;
-    this.jump(-6);
+    Body.setStatic(this.body, true);
+    window.transport.audio.bgm.stop();
+    window.transport.audio.mario_death.play();
+    setTimeout(() => {
+      Body.setStatic(this.body, false);
+      this.jump(-6);
+      setTimeout(() => {
+        const { transport } = window;
+        transport.life--;
+        transport.stopGame();
+        if (transport.life > 0) {
+          transport.initFrontPage();
+        }
+      }, 2500);
+    }, 600);
   }
 
   transform(playerSize = 'big') {
@@ -153,6 +173,18 @@ class Player {
   starFilter() {
     const filterList = ['hue-rotate(90deg)', 'contrast(1.5)', 'grayscale(70%)'];
     ctx.filter = filterList[Math.floor(Common.random(0, 3))];
+  }
+
+  transformSmaller() {
+    if (this.playerSize === 'fire') {
+      this.transform('big');
+      window.transport.audio.powerdown.play();
+    } else if (this.playerSize === 'big') {
+      this.transform('small');
+      window.transport.audio.powerdown.play();
+    } else {
+      this.die();
+    }
   }
 
   dead() {
@@ -228,9 +260,9 @@ class Player {
   }
 
   // move view bounds follow
+  // here use real velocity to judge render bounds
   checkBounds() {
-    const { vel } = this;
-    const { position } = this.body;
+    const { position, velocity: vel } = this.body;
     const { min, max } = render.bounds;
     if (vel.x < 0 && min.x < 0) {
       // no move
@@ -262,6 +294,7 @@ class Player {
     // jump
     } else if (keyCode === 38 && !this.jumping) {
       if (this.body.velocity.y > 0) return; // falling
+      window.transport.audio.jump.play();
       this.jump();
     // fireball
     } else if (keyCode === 32 && this.playerSize === 'fire') {
@@ -310,13 +343,16 @@ class Player {
         const labelA = bodyA.label;
         const labelB = bodyB.label;
         const hitEnemy = checkLabel(groupA, groupB, config.group.player, config.group.enemy);
+        const hitPipeFlower = checkLabel(labelA, labelB, 'Mario', 'PipeFlower');
         const hitBlock = checkLabel(groupA, groupB, config.group.player, config.group.block);
         const hitGrowMushroom = checkLabel(labelA, labelB, 'Mario', 'GrowMushroom');
+        const hitLifeMushroom = checkLabel(labelA, labelB, 'Mario', 'LifeMushroom')
         const hitFlower = checkLabel(labelA, labelB, 'Mario', 'Flower');
         const hitStar = checkLabel(labelA, labelB, 'Mario', 'Star');
         const hitCoin = checkLabel(labelA, labelB, 'Mario', 'Coin');
         const hitEndFlag = checkLabel(labelA, labelB, 'Mario', 'EndFlag');
         const fireballBeat = checkLabel(groupA, groupB, config.group.fireball, config.group.enemy);
+        const turtleBeatMushroom = checkLabel(labelA, labelB, 'Mushroom', 'Turtle');
 
         // touch enemy
         if (hitEnemy && this.status !== 'dead') {
@@ -336,16 +372,28 @@ class Player {
               targetEnemy.starBeat();
             } else if (mario.position.y < enemy.position.y - 10) {
               targetEnemy.die();
-              Body.setStatic(enemy, true);
-              this.jump(-2);
-            } else if (this.playerSize === 'fire') {
-              this.transform('big');
-            } else if (this.playerSize === 'big') {
-              this.transform('small');
+              this.jump(-3);
             } else {
-              this.die();
+              this.transformSmaller();
+            }
+          } else if (enemy.label === 'Turtle') {
+            if (mario.position.y < enemy.position.y - 10) {
+              if (targetEnemy.status === 'awake') {
+                targetEnemy.die();
+                this.jump(-3);
+              } else if (targetEnemy.status === 'dead') {
+                targetEnemy.fly();
+                this.jump(-3);
+              }
+            } else if (targetEnemy.status === 'flow') {
+              this.transformSmaller();
             }
           }
+        }
+
+        // touch pipe flower
+        if (hitPipeFlower && this.status !== 'dead') {
+          this.transformSmaller();
         }
 
         // fireball hit enemy
@@ -360,13 +408,27 @@ class Player {
           enemy.starBeat();
         }
 
+        // turtle beat mushroom
+        if (turtleBeatMushroom) {
+          const mushroom = worldItems.get(
+            labelA === 'Mushroom' ? bodyA : bodyB
+          );
+          mushroom.starBeat();
+        }
+
         // touch block from bottom
         if (hitBlock) {
           const block = groupA === config.group.block ? bodyA : bodyB
-          if (this.body.position.y > block.position.y + 16) {
+          const playerPos = this.body.position;
+          // right below block
+          if (playerPos.y > block.position.y + 16 && playerPos.x > block.position.x-8 && playerPos.x < block.position.x+8) {
             const targetBlock = worldItems.get(block);
             if (targetBlock && targetBlock.status === 'alive') {
-              targetBlock.hit();
+              if (typeof targetBlock.itemType !== 'undefined') {
+                !targetBlock.onHit && targetBlock.hit();
+              } else if (this.playerSize !== 'small' && this.jumping) {
+                targetBlock.break();
+              }
             }
           }
         }
@@ -378,8 +440,21 @@ class Player {
           );
           // skip when popping
           if (growMushroom.popping) return;
+          window.transport.audio.powerup.play();
           growMushroom.die();
           this.transform('big');
+        }
+
+        // touch life mushroom
+        if (hitLifeMushroom) {
+          const lifeMushroom = worldItems.get(
+            labelA === 'LifeMushroom' ? bodyA : bodyB
+          );
+          // skip when popping
+          if (lifeMushroom.popping) return;
+          window.transport.audio.extra_life.play();
+          lifeMushroom.die();
+          window.transport.life++;
         }
 
         // touch flower
@@ -389,6 +464,7 @@ class Player {
           );
           // skip when popping
           if (flower.popping) return;
+          window.transport.audio.powerup.play();
           flower.die();
           this.transform('fire');
         }
@@ -400,10 +476,15 @@ class Player {
           );
           // skip when popping
           if (star.popping) return;
+          window.transport.audio.bgm.stop();
+          window.transport.audio.superstar.play();
           star.die();
           this.starMode = true;
           setTimeout(() => {
             this.starMode = false;
+            if (!this.ending) {
+              window.transport.audio.bgm.play();
+            }
           }, 11000);
         }
 
@@ -554,9 +635,17 @@ class Player {
       rate: 1,
     });
 
+    let isDead = false;
+
     this.drawCallback = () => {
       if (typeof this[this.status] === 'function') {
         this[this.status]();
+      }
+      if (!isDead && this.status !== 'dead' && this.body.position.y > config.height) {
+        isDead = true;
+        setTimeout(() => {
+          this.die();
+        }, 1000);
       }
       self.checkBounds();
     };
