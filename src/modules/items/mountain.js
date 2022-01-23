@@ -1,6 +1,6 @@
 import { Events, Bodies, Composite } from 'matter-js';
 import engine from '../engine';
-import render from '../render';
+import { render } from '../render';
 import config, { ctx, loader } from '../../config';
 
 

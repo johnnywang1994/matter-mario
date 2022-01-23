@@ -1,9 +1,11 @@
 import { Events, Body, Bodies, Composite, Bounds, Common } from 'matter-js';
 import engine from '../engine';
-import render from '../render';
+import { render } from '../render';
 import config, { ctx, loader, idItems, worldItems } from '../../config';
-import { checkLabel, createSpriteAnimation } from '../utils';
+import { checkLabel, createSpriteAnimation, isMobile } from '../utils';
 import Fireball from './fireball';
+
+const dom = (s) => document.querySelector(s);
 
 class Player {
   constructor() {
@@ -41,6 +43,12 @@ class Player {
     this.listeners = {
       keydown: this.onKeyDown.bind(this),
       keyup: this.onKeyUp.bind(this),
+      touchjump: this.onTouchJump.bind(this),
+      touchshoot: this.onTouchShoot.bind(this),
+      touchleft: this.onTouchLeft.bind(this),
+      touchleftend: this.onTouchLeftEnd.bind(this),
+      touchright: this.onTouchRight.bind(this),
+      touchrightend: this.onTouchRightEnd.bind(this),
     };
     this.animation = {};
 
@@ -66,7 +74,7 @@ class Player {
 
     let frameTimer = null;
     const moveDown = () => {
-      if (this.body.position.y >= config.height - 48) {
+      if (this.body.position.y >= config.height - 60) {
         cancelAnimationFrame(frameTimer);
         Body.setPosition(this.body, {
           x: this.body.position.x + 24,
@@ -75,13 +83,14 @@ class Player {
         this.direction = 'front';
         this.moveSpeed = 1;
         this.status = 'moving';
+        Body.setStatic(this.body, false);
         setTimeout(() => {
-          Body.setStatic(this.body, false);
+          Events.off(render, 'afterRender', this.drawCallback);
+          Composite.remove(engine.world, this.body);
           setTimeout(() => {
-            Events.off(render, 'afterRender', this.drawCallback);
-            Composite.remove(engine.world, this.body);
-          }, 1200);
-        }, 500);
+            window.transport.gameOver();
+          }, 3000);
+        }, 1200);
         return;
       }
       Body.translate(this.body, { x: 0, y: 2 });
@@ -117,6 +126,8 @@ class Player {
         transport.stopGame();
         if (transport.life > 0) {
           transport.initFrontPage();
+        } else {
+          transport.gameOver();
         }
       }, 2500);
     }, 600);
@@ -281,6 +292,36 @@ class Player {
     }
   }
 
+  onTouchJump(e) {
+    e.preventDefault();
+    this.onKeyDown.call(this, { keyCode: 38 });
+  }
+
+  onTouchShoot(e) {
+    e.preventDefault();
+    this.onKeyDown.call(this, { keyCode: 32 });
+  }
+
+  onTouchLeft(e) {
+    e.preventDefault();
+    this.onKeyDown.call(this, { keyCode: 37 });
+  }
+
+  onTouchLeftEnd(e) {
+    e.preventDefault();
+    this.onKeyUp.call(this, { keyCode: 37 });
+  }
+
+  onTouchRight(e) {
+    e.preventDefault();
+    this.onKeyDown.call(this, { keyCode: 39 });
+  }
+
+  onTouchRightEnd(e) {
+    e.preventDefault();
+    this.onKeyUp.call(this, { keyCode: 39 });
+  }
+
   onKeyDown({ keyCode }) {
     // console.log(keyCode);
     // move
@@ -320,11 +361,23 @@ class Player {
   removeListener() {
     document.removeEventListener('keydown', this.listeners.keydown);
     document.removeEventListener('keyup', this.listeners.keyup);
+    dom('.btn-jump').removeEventListener('touchstart', this.listeners.touchjump);
+    dom('.btn-shoot').removeEventListener('touchstart', this.listeners.touchshoot);
+    dom('.btn-left').removeEventListener('touchstart', this.listeners.touchleft);
+    dom('.btn-right').removeEventListener('touchstart', this.listeners.touchright);
+    dom('.btn-left').removeEventListener('touchend', this.listeners.touchleftend);
+    dom('.btn-right').removeEventListener('touchend', this.listeners.touchrightend);
   }
 
   setListener() {
     document.addEventListener('keydown', this.listeners.keydown);
     document.addEventListener('keyup', this.listeners.keyup);
+    dom('.btn-jump').addEventListener('touchstart', this.listeners.touchjump, true);
+    dom('.btn-shoot').addEventListener('touchstart', this.listeners.touchshoot, true);
+    dom('.btn-left').addEventListener('touchstart', this.listeners.touchleft, true);
+    dom('.btn-right').addEventListener('touchstart', this.listeners.touchright, true);
+    dom('.btn-left').addEventListener('touchend', this.listeners.touchleftend, true);
+    dom('.btn-right').addEventListener('touchend', this.listeners.touchrightend, true);
 
     // Collision
     Events.on(engine, 'collisionActive', (event) => {
@@ -393,7 +446,16 @@ class Player {
 
         // touch pipe flower
         if (hitPipeFlower && this.status !== 'dead') {
-          this.transformSmaller();
+          const pipe = worldItems.get(
+            labelA === 'PipeFlower' ? bodyA : bodyB
+          );
+          if (pipe.flowerStatus !== 'dead') {
+            if (this.starMode) {
+              pipe.flowerDie();
+            } else {
+              this.transformSmaller();
+            }
+          }
         }
 
         // fireball hit enemy
@@ -485,7 +547,7 @@ class Player {
             if (!this.ending) {
               window.transport.audio.bgm.play();
             }
-          }, 11000);
+          }, 12000);
         }
 
         // touch coin

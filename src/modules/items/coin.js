@@ -1,7 +1,7 @@
 import { Bodies, Body, Composite, Events } from 'matter-js';
 import config, { ctx, loader, idItems, worldItems } from '../../config';
 import engine from '../engine';
-import render from '../render';
+import { render } from '../render';
 import { createSpriteAnimation } from '../utils';
 
 class Coin {

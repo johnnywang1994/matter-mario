@@ -1,6 +1,6 @@
 import { Events, Body, Bodies, Composite, Composites } from 'matter-js';
 import engine from '../engine';
-import render from '../render';
+import { render } from '../render';
 import config, { ctx, loader } from '../../config';
 
 class Ground {

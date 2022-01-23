@@ -1,6 +1,6 @@
 import { Events, Body, Bodies, Composite } from 'matter-js';
 import engine from '../engine';
-import render from '../render';
+import { render } from '../render';
 import { createSpriteAnimation } from '../utils';
 import config, { ctx, loader, worldItems } from '../../config';
 
@@ -36,6 +36,7 @@ class Turtle {
   }
 
   starBeat() {
+    window.transport.audio.stomp.play();
     this.status = 'beat';
     this.body.collisionFilter.mask = config.category.isolate;
     Body.setVelocity(this.body, {

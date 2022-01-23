@@ -1,7 +1,7 @@
 import { Bodies, Body, Composite, Events } from 'matter-js';
 import config, { ctx, loader, worldItems } from '../../config';
 import engine from '../engine';
-import render from '../render';
+import { render } from '../render';
 
 const labelMap = {
   0: 'GrowMushroom',

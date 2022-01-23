@@ -1,7 +1,7 @@
 import { Bodies, Composite, Events, Body } from 'matter-js';
 import config, { ctx, loader, idItems, worldItems } from '../../config';
 import engine from '../engine';
-import render from '../render';
+import { render } from '../render';
 import { createSpriteAnimation } from '../utils';
 
 class Pipe {
@@ -41,15 +41,22 @@ class Pipe {
     this.animation = {};
   }
 
-  die() {
+  flowerDie() {
     window.transport.audio.stomp.play();
     this.flowerStatus = 'dead';
-    Body.setStatic(this.flower, true);
-    this.body.isSensor = true;
+    Body.setStatic(this.flower, false);
+    Body.setVelocity(this.flower, {
+      x: 1,
+      y: -3,
+    });
     setTimeout(() => {
       worldItems.delete(this.flower);
       Composite.remove(engine.world, this.flower);
-    }, 500);
+    }, 1000);
+  }
+
+  dead() {
+    this.animation.flowerAlive.loop();
   }
 
   alive() {

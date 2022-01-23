@@ -1,7 +1,7 @@
 import { Events, Render } from 'matter-js';
 import config, { ctx, loader, idItems, worldItems } from '../../config';
 import engine from '../engine';
-import render from '../render';
+import { render } from '../render';
 import Coin from '../items/coin';
 import Mushroom from '../items/mushroom';
 import Turtle from './turtle';
@@ -36,6 +36,10 @@ class Scene {
   startCountDown() {
     this.timer = setInterval(() => {
       this.seconds -= 1;
+      if (this.seconds === 0) {
+        this.stopCountDown();
+        idItems.player.die();
+      }
     }, 500);
   }
 
@@ -83,7 +87,7 @@ class Scene {
       this.drawTimer();
       this.drawCoin();
       this.loopTriggers();
-      this.drawPlayerPos();
+      // this.drawPlayerPos();
     })
   }
 }

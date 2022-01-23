@@ -1,3 +1,26 @@
+const u = window.navigator.userAgent;
+
+export const isMobile = {
+  Android: function() {
+    return (/Android/i).test(u);
+  },
+  BlackBerry: function() {
+    return (/BlackBerry/i).test(u);
+  },
+  iOS: function() {
+    return (/iPhone|iPad|iPod/i).test(u);
+  },
+  Opera: function() {
+    return (/Opera Mini/i).test(u);
+  },
+  Windows: function() {
+    return (/IEMobile/i).test(u);
+  },
+  any: function() {
+    return (isMobile.Android() || isMobile.BlackBerry() || isMobile.iOS() || isMobile.Opera() || isMobile.Windows());
+  }
+};
+
 export async function loadImage(url) {
   return new Promise((resolve, reject) => {
     const image = new Image();

@@ -1,6 +1,6 @@
-import { Howl } from 'howler';
+// import { Howl } from 'howler';
 
-const getAudioUrl = (filename) => `/cdn/audio/${filename}`;
+const getAudioUrl = (filename) => `/p5-game/cdn/audio/${filename}`;
 
 const audioConfigs = {
   bgm: {

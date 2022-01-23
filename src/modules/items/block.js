@@ -1,7 +1,7 @@
 import { Bodies, Composite, Events, Constraint, Body, Vector } from 'matter-js';
 import config, { ctx, loader, worldItems } from '../../config';
 import engine from '../engine';
-import render from '../render';
+import { render } from '../render';
 import Item from './item';
 import Coin from './coin';
 
@@ -48,6 +48,9 @@ class Block {
       pointA: { x, y },
       bodyB: this.body,
       stiffness: 0.1,
+      render: {
+        visible: false,
+      }
     });
 
     worldItems.set(this.body, this);
@@ -131,7 +134,7 @@ class Block {
         this.blockType = 2;
         setTimeout(() => {
           Body.setStatic(body, true);
-        }, 800);
+        }, 300);
       }
     }
   }

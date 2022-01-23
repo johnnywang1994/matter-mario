@@ -1,6 +1,6 @@
 import { Events, Body, Bodies, Composite, Bounds, Common } from 'matter-js';
 import engine from '../engine';
-import render from '../render';
+import { render } from '../render';
 import config, { ctx, loader, idItems, worldItems } from '../../config';
 
 let fireballCount = 0;
